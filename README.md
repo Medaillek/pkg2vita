@@ -1,7 +1,3 @@
-Here is an enhanced, fully fleshed-out `README.md` for your project. It includes a better structure, detailed setup instructions, usage steps, and a guide on what to do with the output.
-
-You can copy and paste this directly into your repository!
-
 ---
 
 # 🎮 pkg2vita
