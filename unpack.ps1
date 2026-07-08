@@ -1,10 +1,9 @@
 # ==============================================================================
-# PS Vita Game & DLC Automated Unpacker
+# PS Vita Game & DLC Automated Unpacker - V2 (Fixed work.bin routing)
 # Place this script in the same folder as your .zip files and pkg2zip.exe
 # ==============================================================================
 
 # --- Configuration ---
-# Update this path if 7-Zip is installed somewhere else on your PC
 $7zPath = "C:\Program Files\7-Zip\7z.exe" 
 $workingDir = Get-Location
 $pkg2zipPath = Join-Path $workingDir "pkg2zip.exe"
@@ -52,21 +51,33 @@ foreach ($zip in $zipFiles) {
     Write-Host "-> Extracting $itemName..."
     & $7zPath x $zip.FullName -o"$tempDir" -y | Out-Null
     
-    # 3. Find and rename the .bin file to work.bin (ignoring if it's already named correctly)
-    $binFile = Get-ChildItem -Path $tempDir -Filter *.bin -Recurse | Where-Object { $_.Name -ne "work.bin" } | Select-Object -First 1
-    if ($binFile) {
-        Write-Host "-> Found .bin file. Renaming to work.bin..."
-        Rename-Item -Path $binFile.FullName -NewName "work.bin"
-    }
-    
-    # 4. Find the .pkg file
+    # 3. Find the .pkg file FIRST
     $pkgFile = Get-ChildItem -Path $tempDir -Filter *.pkg -Recurse | Select-Object -First 1
     
     if ($pkgFile) {
+        $pkgDir = $pkgFile.DirectoryName
+        
+        # 4. Find the .bin file and force it into the .pkg directory
+        # (Filtering out "eboot.bin" just in case it exists in the archive)
+        $binFile = Get-ChildItem -Path $tempDir -Filter *.bin -Recurse | Where-Object { $_.Name -ne "eboot.bin" } | Select-Object -First 1
+        
+        if ($binFile) {
+            $targetBinPath = Join-Path $pkgDir "work.bin"
+            # Only move/rename if it isn't already the exact file in the exact spot
+            if ($binFile.FullName -ne $targetBinPath) {
+                Write-Host "-> Found license .bin. Moving next to .pkg and renaming to work.bin..."
+                Move-Item -Path $binFile.FullName -Destination $targetBinPath -Force
+            } else {
+                Write-Host "-> work.bin is already correctly placed next to the .pkg."
+            }
+        } else {
+            Write-Host "-> WARNING: No .bin license file found. Decryption may fail." -ForegroundColor Yellow
+        }
+        
         Write-Host "-> Decrypting and unpacking .pkg with pkg2zip..."
         
         # Navigate into the folder containing the .pkg so pkg2zip generates output there
-        Push-Location $pkgFile.DirectoryName
+        Push-Location $pkgDir
         
         # The -x flag explicitly extracts into the app/ or addcont/ folder structure natively
         & $pkg2zipPath -x $pkgFile.Name
@@ -75,7 +86,7 @@ foreach ($zip in $zipFiles) {
         
         # 5. Move the extracted Vita folders (app or addcont) to the final output directory
         Write-Host "-> Organizing decrypted files..."
-        $extractedVitaFolders = Get-ChildItem -Path $tempDir -Directory | Where-Object { $_.Name -in @("app", "addcont") }
+        $extractedVitaFolders = Get-ChildItem -Path $pkgDir -Directory | Where-Object { $_.Name -in @("app", "addcont") }
         
         foreach ($folder in $extractedVitaFolders) {
             $destPath = Join-Path $outputDir $folder.Name
