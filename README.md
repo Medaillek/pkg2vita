@@ -95,9 +95,9 @@ Once the script finishes, it will generate a new folder called **`ReadyForVita`*
 
 ### Transferring to your PS Vita:
 
-1. Connect your PS Vita to your PC using **VitaShell** (via USB or FTP).
-2. Open your memory card directory (usually `ux0:`).
-3. Copy the contents of the `ReadyForVita` folder directly into the root of `ux0:`.
+1. Connect your PS Vita to your PC using **VitaShell** (via USB or FTP) or using your sd card if you're using an sd2vita adapter.
+2. (FTP) Open your memory card directory (usually `ux0:`).
+3. Copy the contents of the `ReadyForVita/` folder directly into `ux0:` or to the root of your sd card if using an sd card.
 *(If prompted to merge folders, click **Yes**).*
 4. Disconnect your Vita.
 5. In VitaShell, press **Triangle (△)** and select **"Refresh LiveArea"**.
