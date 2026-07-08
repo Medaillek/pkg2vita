@@ -1,5 +1,3 @@
----
-
 # 🎮 pkg2vita
 
 **An automated PowerShell script to extract, decrypt, and organize PS Vita Games and DLCs.**
